@@ -7,7 +7,7 @@ import string
 class AdvancedPasswordGenerator:
     def __init__(self, root):
         self.root = root
-        self.root.title("Advanced Password Generator")
+        self.root.title("Password Generator")
         self.root.geometry("500x400")
         self.root.configure(background='#2d2d2d')
 
