@@ -3,16 +3,27 @@ from tkinter import ttk
 from tkinter import messagebox
 import random
 import string
+from PIL import Image, ImageTk
+import io
+import requests
+
 
 class AdvancedPasswordGenerator:
     def __init__(self, root):
         self.root = root
-        self.root.title("Password Generator")
-        self.root.geometry("500x400")
-        self.root.configure(background='#2d2d2d')
+        self.root.title("Advanced Password Generator")
+        self.root.geometry("600x500")
+
+        # Load the background image from the URL
+        url = "https://www.joydeepdeb.com/images/password-generator.jpg"
+        response = requests.get(url)
+        self.background_image = ImageTk.PhotoImage(Image.open(io.BytesIO(response.content)))
+        self.background_label = tk.Label(self.root, image=self.background_image)
+        self.background_label.place(relx=0, rely=0, relwidth=1, relheight=1)
 
         # Title label
-        title_label = tk.Label(root, text="Password Generator", font=('Helvetica', 24, 'bold'), bg='#2d2d2d', fg='#ffffff')
+        title_label = tk.Label(root, text="Password Generator", font=('Helvetica', 24, 'bold'), bg='#2d2d2d',
+                               fg='#ffffff')
         title_label.pack(pady=20)
 
         # Length selection
@@ -26,21 +37,26 @@ class AdvancedPasswordGenerator:
         self.var_digits = tk.IntVar()
         self.var_special = tk.IntVar()
 
-        check_uppercase = tk.Checkbutton(root, text="Include Uppercase Letters", variable=self.var_uppercase, font=('Helvetica', 12), bg='#2d2d2d', fg='#ffffff', selectcolor='#444444')
+        check_uppercase = tk.Checkbutton(root, text="Include Uppercase Letters", variable=self.var_uppercase,
+                                         font=('Helvetica', 14), bg='#2d2d2d', fg='#ffffff', selectcolor='#444444')
         check_uppercase.pack(pady=5)
 
-        check_digits = tk.Checkbutton(root, text="Include Digits", variable=self.var_digits, font=('Helvetica', 12), bg='#2d2d2d', fg='#ffffff', selectcolor='#444444')
+        check_digits = tk.Checkbutton(root, text="Include Digits", variable=self.var_digits, font=('Helvetica', 14),
+                                      bg='#2d2d2d', fg='#ffffff', selectcolor='#444444')
         check_digits.pack(pady=5)
 
-        check_special = tk.Checkbutton(root, text="Include Special Characters (@, _)", variable=self.var_special, font=('Helvetica', 12), bg='#2d2d2d', fg='#ffffff', selectcolor='#444444')
+        check_special = tk.Checkbutton(root, text="Include Special Characters (@, _)", variable=self.var_special,
+                                       font=('Helvetica', 14), bg='#2d2d2d', fg='#ffffff', selectcolor='#444444')
         check_special.pack(pady=5)
 
         # Generate button
-        generate_button = ttk.Button(root, text="Generate Password", command=self.generate_password, style='Custom.TButton')
+        generate_button = ttk.Button(root, text="Generate Password", command=self.generate_password,
+                                     style='Custom.TButton')
         generate_button.pack(pady=20)
 
         # Password display
-        self.password_display = tk.Label(root, text="", font=('Helvetica', 16, 'bold'), bg='#2d2d2d', fg='#ffffff', wraplength=400)
+        self.password_display = tk.Label(root, text="", font=('Helvetica', 16, 'bold'), bg='#2d2d2d', fg='#ffffff',
+                                         wraplength=400)
         self.password_display.pack(pady=20)
 
         # Custom style for the button
@@ -48,7 +64,7 @@ class AdvancedPasswordGenerator:
         style.configure('Custom.TButton', font=('Helvetica', 14), padding=10)
 
     def generate_password(self):
-        print("Generate button clicked")  # Debug statement
+        print("Generate button clicked")
         length = self.length_entry.get()
         if not length.isdigit() or int(length) <= 0:
             messagebox.showerror("Invalid Input", "Please enter a valid number for the password length.")
@@ -69,8 +85,9 @@ class AdvancedPasswordGenerator:
 
         password = ''.join(random.choice(characters) for _ in range(length))
         self.password_display.config(text=password)
-        print(f"Generated Password: {password}")  # Debug statement
+        print(f"Generated Password: {password}")
         messagebox.showinfo("Generated Password", f"Your generated password is: {password}")
+
 
 if __name__ == "__main__":
     root = tk.Tk()
