@@ -1,64 +1,98 @@
 import tkinter as tk
 from tkinter import ttk
+import urllib.request
+from PIL import Image, ImageTk
+import math
 
 class Calculator:
-    def __init__(self, root):
-        self.root = root
-        self.root.title("Calculator")
+    def __init__(self, master):
+        self.master = master
+        master.title("Advanced Calculator")
 
-        # Create input field
-        self.input_entry = ttk.Entry(root, width=50, font=('Arial', 14), foreground='#000000')
-        self.input_entry.grid(row=0, column=0, columnspan=4, padx=10, pady=10)
+        # Download background image from the internet
+        url = "https://images.unsplash.com/photo-1515879218367-8466d910aaa4?ixlib=rb-1.2.1&q=80&fm=jpg&crop=entropy&cs=tinysrgb&w=1080&fit=max"
+        urllib.request.urlretrieve(url, "background.jpg")
 
-        # Create buttons with custom styling
+        # Load background image
+        background_image = Image.open("background.jpg")
+        background_image = background_image.resize((800, 600), Image.Resampling.LANCZOS)
+        self.background_image = ImageTk.PhotoImage(background_image)  # Keep a reference to avoid garbage collection
+
+        # Create background label
+        background_label = tk.Label(master, image=self.background_image)
+        background_label.place(x=0, y=0, relwidth=1, relheight=1)
+
+        # Display
+        self.display = tk.Entry(master, width=40, borderwidth=5, font=('Arial', 24), bg='lightgray', fg='black')
+        self.display.grid(row=0, column=0, columnspan=6, padx=5, pady=5)
+
+        # Buttons
         buttons = [
-            ('7', 1, 0), ('8', 1, 1), ('9', 1, 2), ('(', 1, 3),
-            ('4', 2, 0), ('5', 2, 1), ('6', 2, 2), (')', 2, 3),
-            ('1', 3, 0), ('2', 3, 1), ('3', 3, 2), ('-', 3, 3),
-            ('0', 4, 0), ('.', 4, 1), ('=', 4, 2), ('+', 4, 3),
-            ('sin', 5, 0), ('cos', 5, 1), ('tan', 5, 2), ('^', 5, 3),
-            ('clear', 6, 0), ('exit', 6, 1), ('⌫', 6, 2)
+            '7', '8', '9', '/', 'sin', 'cos',
+            '4', '5', '6', '*', 'tan', 'log',
+            '1', '2', '3', '-', 'exp', 'sqrt',
+            '0', '.', '=', '+', 'x²', 'x³',
+            '(', ')', 'C', '←', '1/x', '1/2'
         ]
 
-        for (text, row, col) in buttons:
-            button = ttk.Button(root, text=text, command=lambda t=text: self.on_button_click(t), width=10, style='Calc.TButton')
-            button.grid(row=row, column=col, padx=5, pady=5)
+        row = 1
+        col = 0
+        for button_text in buttons:
+            button = tk.Button(master, text=button_text, width=8, height=2, command=lambda text=button_text: self.button_click(text),
+                               font=('Helvetica', 18), bg='lightblue', fg='black', activebackground='skyblue', activeforeground='black')
+            button.grid(row=row, column=col, padx=5, pady=5, sticky='nsew')
 
-        # Custom style for buttons
-        root.tk_setPalette(background='#333333', foreground='#ffffff', activeBackground='#666666', activeForeground='#ffffff')
-        root.option_add('*TButton*font', ('Arial', 12))
-        root.option_add('*TButton*borderWidth', 2)
-        root.option_add('*TButton*relief', 'raised')
-        root.option_add('*TButton*padding', 10)
-        root.option_add('*TButton*background', '#444444')
-        root.option_add('*TButton*foreground', '#ffffff')
-        root.option_add('*TButton*highlightColor', '#666666')
-        root.option_add('*TButton*highlightBackground', '#666666')
+            col += 1
+            if col > 5:
+                col = 0
+                row += 1
 
-    def on_button_click(self, text):
+        # Resize columns for uniform button size
+        for i in range(6):
+            master.columnconfigure(i, weight=1)
+
+        # Focus on display entry
+        self.display.focus_set()
+
+        # Bind keyboard events
+        master.bind('<Key>', self.key_press)
+
+    def button_click(self, text):
         if text == '=':
-            expression = self.input_entry.get()
             try:
+                expression = self.display.get()
+                expression = expression.replace('sin', 'math.sin')
+                expression = expression.replace('cos', 'math.cos')
+                expression = expression.replace('tan', 'math.tan')
+                expression = expression.replace('log', 'math.log')
+                expression = expression.replace('exp', 'math.exp')
+                expression = expression.replace('sqrt', 'math.sqrt')
+                expression = expression.replace('x²', '**2')
+                expression = expression.replace('x³', '**3')
+                expression = expression.replace('1/2', '/2')
+                expression = expression.replace('1/x', '1/')
                 result = eval(expression)
-                self.input_entry.delete(0, tk.END)
-                self.input_entry.insert(tk.END, str(result))
+                self.display.delete(0, tk.END)
+                self.display.insert(0, result)
             except Exception as e:
-                self.input_entry.delete(0, tk.END)
-                self.input_entry.insert(tk.END, "Error")
-        elif text == 'clear':
-            self.input_entry.delete(0, tk.END)
-        elif text == 'exit':
-            self.root.destroy()
-        elif text == '⌫':  # Backspace functionality
-            current_text = self.input_entry.get()
-            if len(current_text) > 0:
-                self.input_entry.delete(len(current_text) - 1, tk.END)
+                self.display.delete(0, tk.END)
+                self.display.insert(0, 'Error')
+        elif text == '←':
+            self.display.delete(len(self.display.get()) - 1, tk.END)
+        elif text == 'C':
+            self.display.delete(0, tk.END)
         else:
-            self.input_entry.insert(tk.END, text)
+            self.display.insert(tk.END, text)
 
-if __name__ == "__main__":
-    root = tk.Tk()
-    style = ttk.Style(root)
-    style.configure('Calc.TButton', font=('Arial', 12))
-    app = Calculator(root)
-    root.mainloop()
+    def key_press(self, event):
+        text = event.char
+        if text in '0123456789+-*/().':
+            self.display.insert(tk.END, text)
+        elif text == '=' or text == '\r':
+            self.button_click('=')
+        elif text == '\b':
+            self.button_click('←')
+
+root = tk.Tk()
+calculator = Calculator(root)
+root.mainloop()
